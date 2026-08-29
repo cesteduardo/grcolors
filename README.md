@@ -1,104 +1,94 @@
 # GR Colors
 
-Ferramenta completa para criação, exploração, análise e aplicação de paletas de cores. O projeto reúne recursos para designers e desenvolvedores em uma interface responsiva, acessível e executada inteiramente no navegador.
+Aplicação open source para criar, analisar, visualizar e exportar paletas de cores. Todo o processamento acontece localmente no navegador, sem conta, servidor de aplicação ou envio de imagens.
 
-## Demonstração
+## Funcionalidades
 
-Esta pasta contém a versão estática de produção do GR Colors. Para visualizar localmente, sirva os arquivos por HTTP:
-
-```bash
-npx serve .
-```
-
-Depois, abra o endereço informado pelo servidor no navegador.
-
-> Abrir o `index.html` diretamente pode impedir o funcionamento correto das rotas e dos módulos JavaScript. Prefira um servidor HTTP local.
-
-## Recursos
-
-- geração de paletas com bloqueio individual de cores;
-- harmonias monocromáticas, análogas, complementares, triádicas e outras combinações;
-- catálogo de paletas com busca, filtros e favoritos;
-- extração de cores de imagens com pontos de amostragem ajustáveis;
-- verificação de contraste conforme WCAG 2.2;
-- análise complementar por APCA;
-- simulação de diferentes tipos de visão de cores;
-- visualização da paleta em interfaces, marcas, tipografia, padrões e ilustrações;
-- seletor com conversões HEX, RGB, HSL, HSB, CMYK, LAB, LCH, OKLCH, LUV, XYZ e HWB;
-- geração de escalas para Tailwind CSS;
-- tokens semânticos para temas claro e escuro;
-- exportação em CSS, SCSS, JSON, SVG, PDF, ASE e outros formatos;
-- assistente de cores processado localmente;
+- gerador de paletas com bloqueio e histórico;
+- catálogo pesquisável de paletas;
+- extração de cores de imagens;
+- contraste WCAG 2.2 e análise APCA;
+- simulação de deficiências de visão de cores;
+- prévias em interfaces, marcas, tipografia, padrões e ilustrações;
+- conversões HEX, RGB, HSL, HSB, CMYK, LAB, LCH, OKLCH, LUV, XYZ e HWB;
+- escalas para Tailwind CSS e tokens para temas claro e escuro;
+- exportação para CSS, SCSS, JSON, SVG, PDF e ASE;
+- assistente local para estratégia de cores;
 - compartilhamento de paletas pela URL;
-- interface em português, espanhol, inglês e chinês simplificado.
-
-## Privacidade
-
-O GR Colors funciona no navegador e não exige conta. Paletas salvas e preferências de idioma são armazenadas localmente no dispositivo por meio de `localStorage`. Imagens usadas para extração de cores são processadas no próprio navegador.
-
-## Acessibilidade
-
-O projeto inclui:
-
-- avaliação de contraste para texto normal, texto grande e componentes;
-- indicação dos níveis AA e AAA;
-- simulações de protanopia, deuteranopia, tritanopia e acromatopsia;
-- navegação por teclado e contornos de foco visíveis;
-- atributos de idioma e rótulos para tecnologias assistivas;
-- suporte à preferência de movimento reduzido.
+- português, espanhol, inglês e chinês simplificado.
 
 ## Tecnologias
 
-A aplicação de origem foi construída com:
+React, TypeScript, Vite, Tailwind CSS e Lucide React.
 
-- React;
-- TypeScript;
-- Vite;
-- Tailwind CSS;
-- Lucide Icons.
+## Requisitos
 
-Esta pasta contém somente os artefatos compilados necessários para publicação.
+- Node.js 20 ou mais recente;
+- npm 10 ou mais recente.
 
-## Estrutura desta versão
-
-```text
-colors/
-├── assets/          # JavaScript e CSS compilados com hash
-├── index.html       # ponto de entrada da aplicação
-└── README.md        # documentação do projeto
-```
-
-O código foi dividido em chunks independentes para melhorar cache e manutenção:
-
-- interface principal;
-- React;
-- ícones;
-- mecanismos de cor;
-- traduções;
-- painel detalhado carregado sob demanda.
-
-## Publicação
-
-O conteúdo pode ser hospedado em qualquer serviço de arquivos estáticos, como Cloudflare Pages, Netlify, Vercel ou GitHub Pages. Publique o conteúdo desta pasta na raiz do site.
-
-Como as paletas podem ser compartilhadas pelo caminho da URL, o servidor deve redirecionar rotas desconhecidas para `index.html` com status `200`. Isso preserva a URL para que a aplicação recupere a paleta no navegador.
-
-## Desenvolvimento
-
-O código-fonte não está incluído nesta pasta de distribuição. No projeto-fonte, o fluxo padrão é:
+## Instalação
 
 ```bash
-npm install
+git clone https://github.com/cesteduardo/grcolors.git
+cd grcolors
+npm ci
 npm run dev
+```
+
+O Vite mostrará o endereço local, normalmente `http://localhost:5173`.
+
+## Comandos
+
+```bash
+npm run dev      # servidor de desenvolvimento
+npm run build    # verificação TypeScript e build em dist/
+npm run preview  # prévia local do build
+```
+
+## Estrutura
+
+```text
+grcolors/
+├── public/              # fontes e ícones públicos
+├── src/
+│   ├── App.tsx          # interface e ferramentas
+│   ├── ColorPanel.tsx   # painel detalhado de cor
+│   ├── color.ts         # conversões, harmonias e análises
+│   ├── i18n.ts          # traduções
+│   ├── index.css        # estilos e tokens visuais
+│   └── main.tsx         # entrada React
+├── index.html
+├── vite.config.ts
+└── package.json
+```
+
+## Privacidade e acessibilidade
+
+As imagens são processadas pelo Canvas no próprio navegador. Paletas salvas e idioma são armazenados somente em `localStorage`. O projeto não possui analytics, autenticação ou API externa.
+
+O GR Colors oferece navegação por teclado, foco visível, rótulos para tecnologias assistivas, preferência por movimento reduzido, testes WCAG e simulações de visão de cores.
+
+## Build e publicação
+
+```bash
+npm ci
 npm run build
 ```
 
-O resultado de `npm run build` deve ser copiado para esta pasta antes de uma nova publicação.
+O resultado será criado em `dist/`. Como o build usa caminhos relativos, pode ser hospedado na raiz ou em uma subpasta.
 
-## Identidade
+As URLs compartilháveis usam o caminho do navegador. Em hospedagens estáticas, configure um fallback de SPA que devolva `index.html` para rotas inexistentes.
 
-GR Colors é uma ferramenta da GR Brands. A interface utiliza a identidade visual, a tipografia e os princípios de design da marca.
+## Como contribuir
 
-## Licença e uso
+1. Faça um fork.
+2. Crie uma branch: `git switch -c feature/minha-melhoria`.
+3. Instale as dependências com `npm ci`.
+4. Faça a alteração e execute `npm run build`.
+5. Abra um pull request explicando o problema e a solução.
 
-Antes de redistribuir ou modificar publicamente o projeto, confirme a licença definida pelo responsável da GR Brands. Marcas, logotipos e elementos de identidade visual permanecem pertencentes aos seus respectivos titulares.
+Ao adicionar texto visível, inclua a tradução em inglês, espanhol e chinês em `src/i18n.ts`. Ao alterar cálculos de cor ou contraste, descreva no pull request como o resultado foi verificado.
+
+## Licença
+
+Distribuído sob a licença MIT. Consulte [LICENSE](LICENSE).

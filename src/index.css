@@ -1,0 +1,441 @@
+@import "tailwindcss";
+
+/* A Jersey 10 e a fonte de pixel da GR Brands — a mesma que escreve "Terminei
+   obcecado com pixels" no site e numera os servicos. Ela e o tracinho de
+   identidade mais reconhecivel da marca e nao existe em nenhuma ferramenta de
+   cor por ai; e o que mais afasta esta tela do visual generico de gerador de
+   paleta. Fica so em numero e rotulo curto: e uma fonte de display. */
+/* A Inter vem dos MESMOS arquivos do site principal, e nao do Google Fonts.
+   Nao e so procedencia: a GR Brands carrega tres pesos — 400, 500 e 600 — e
+   nao existe nada acima disso na marca. O GR Colors vinha puxando 700, 800 e
+   900 do Google e usando peso 900 em cinquenta lugares; era esse peso de
+   cartaz, e nao a paleta, que fazia a tela parecer um gerador qualquer em vez
+   de uma peca da casa. Sem os arquivos pesados, nem da para errar. */
+@font-face {
+  font-family: "Inter";
+  src: url("./assets/Inter-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Inter";
+  src: url("./assets/Inter-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Inter";
+  src: url("./assets/Inter-SemiBold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Jersey 10";
+  src: url("./assets/Jersey10-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ---------------------------------------------------------------
+   Tokens. Tudo que muda entre claro e escuro mora aqui — nenhum
+   componente deve escrever black/X ou white/X para superfícies.
+   --------------------------------------------------------------- */
+@theme {
+  /* ---------------------------------------------------------------
+     A paleta e as medidas vem do site principal da GR Brands. Antes
+     esta ferramenta tinha identidade propria — canvas esverdeado,
+     acento violeta #6d3bf5, raios de 10/12/15/20/28px — e nao parecia
+     a mesma empresa. Aqui os valores sao os MESMOS tokens do
+     style.css da GR Brands, com os mesmos nomes de papel.
+     --------------------------------------------------------------- */
+  --font-sans: "Inter", ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  --font-pixel: "Jersey 10", "Courier New", monospace;
+
+  /* A escala de medida da GR Brands e multipla de 1.1px — 8.8, 11,
+     15.4, 19.8, 26.4 — e nao a de 4px do Tailwind. E o que da o
+     arredondamento levemente mais fechado do site. */
+  --radius-md: 8.8px;
+  --radius-lg: 11px;
+  --radius-xl: 15.4px;
+  --radius-2xl: 19.8px;
+  --radius-3xl: 26.4px;
+
+  --color-canvas: #f7f7f7;      /* --paper  */
+  --color-surface: #ffffff;     /* --card   */
+  --color-raised: #ffffff;
+  --color-ink: #0e0e10;         /* --ink    */
+  --color-muted: #6e6e76;       /* --muted  */
+  --color-faint: #93939c;       /* --faint  */
+  --color-line: #e2e2e6;        /* --line   */
+  --color-line-strong: #c9c9d0;
+  --color-fill: #ebebef;        /* --ph     */
+  --color-fill-strong: #e2e2e7; /* --ph2    */
+
+  /* O acento e o vermelho da marca. Ele nao e decorativo: no site e a
+     cor de "aqui e agora" — o trilho da rolagem, a etapa corrente, o
+     contorno de foco. Aqui faz o mesmo papel. */
+  --color-accent: #e4322a;      /* --red    */
+  --color-accent-soft: #fdecea;
+  --color-accent-ink: #ffffff;
+
+  /* Sombras rasas e muito largas, como as dos paineis do site
+     (.svcs, .steps): elas descolam a peca sem desenhar uma borda de
+     sombra em volta dela. */
+  --shadow-card: 0 1.1px 2.2px rgb(14 14 16 / 0.04);
+  --shadow-panel: 0 1.1px 2.2px rgb(14 14 16 / 0.04), 0 30.8px 66px -57.2px rgb(14 14 16 / 0.34);
+  --shadow-pop: 0 2.2px 6.6px rgb(14 14 16 / 0.06), 0 26.4px 50.6px -37.4px rgb(14 14 16 / 0.34);
+}
+
+
+@layer base {
+  :root {
+    color-scheme: light only;
+  }
+  * {
+    box-sizing: border-box;
+  }
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    margin: 0;
+    background: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    letter-spacing: -0.011em;
+    /* as mesmas features tipograficas do site principal */
+    font-feature-settings: "kern", "liga", "calt";
+  }
+  h1, h2, h3 {
+    letter-spacing: -0.035em;
+    font-weight: 600;
+  }
+  /* Teto de peso da marca. Mesmo que uma classe peca 700/800/900, a familia
+     so tem ate 600 — sem esta regra o navegador sintetizaria o negrito,
+     engordando a letra por matriz e sujando as junções. */
+  strong, b {
+    font-weight: 600;
+  }
+  button, input, select, textarea {
+    font: inherit;
+    color: inherit;
+  }
+  button {
+    cursor: pointer;
+  }
+  select {
+    appearance: none;
+  }
+  ::selection {
+    background: var(--color-ink);
+    color: var(--color-canvas);
+  }
+  /* Mesmo contorno de foco do site principal: 2.2px no vermelho da marca,
+     afastado 3.3px do controle. */
+  :focus-visible {
+    outline: 2.2px solid var(--color-accent);
+    outline-offset: 3.3px;
+    /* O contorno precisa seguir a geometria real do componente. O antigo
+       raio fixo de 4.4px deixava pílulas e cartões com cantos quadrados. */
+    border-radius: inherit;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-line-strong);
+    border-radius: 999px;
+    border: 2px solid var(--color-canvas);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-faint);
+  }
+  /* Respeita quem pediu menos movimento no sistema. */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* Evita o halo de fundo que aparece além da curva em bordas antialiasadas.
+   A regra vale somente para componentes que já declaram borda + raio. */
+[class*="rounded-"][class*="border-line"],
+[class*="rounded-"][class*="border-"][class*="bg-surface"],
+[class*="rounded-"][class*="ring-line"] {
+  background-clip: padding-box;
+}
+
+/* Recipientes que recortam conteúdo colorido precisam de uma camada própria;
+   assim a borda externa permanece contínua nos quatro cantos. */
+[class*="rounded-"][class*="overflow-hidden"] {
+  isolation: isolate;
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+}
+
+/* Xadrez para indicar transparência. */
+.checker {
+  background-color: var(--color-surface);
+  background-image:
+    linear-gradient(45deg, var(--color-fill-strong) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--color-fill-strong) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--color-fill-strong) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--color-fill-strong) 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+}
+
+/* Numeral em pixel, como o .svc__n do site: corpo grande, entrelinha
+   curta e o alisamento desligado — a fonte e desenhada em grade, e
+   suavizar as bordas justamente apaga o que ela tem de proprio. */
+.pixel-n {
+  font-family: var(--font-pixel);
+  line-height: 0.8;
+  letter-spacing: 0.02em;
+  -webkit-font-smoothing: none;
+  font-smooth: never;
+}
+
+
+/* ===============================================================
+   ARQUITETURA DE PAGINA DA GR BRANDS
+
+   O que fazia o GR Colors parecer o Coolors nao era a paleta nem a
+   tipografia: era a CASCA. Barra branca no topo com a marca a
+   esquerda, pilulas de navegacao no meio, botoes a direita, conteudo
+   em cartoes arredondados sobre cinza claro. Esse e o desenho do
+   coolors.io — e o de mais uns mil produtos.
+
+   O site da GR Brands e montado de outro jeito, e sao dois elementos
+   que ninguem mais tem:
+
+   1. um TRILHO fixo na lateral esquerda, com o progresso da leitura
+      em vermelho, que empurra a pagina inteira para dentro;
+   2. um header que comeca colado no topo, de borda a borda, e ao
+      rolar se DESTACA e vira uma pilula de vidro flutuante.
+
+   Os valores abaixo sao os mesmos do style.css do site.
+   =============================================================== */
+:root {
+  /* O trilho lateral saiu a pedido. A variavel fica em zero porque o header
+     usa ela no calculo de largura e de centro — assim ele continua correto
+     sem o trilho, e devolve-lo e mudar um numero. */
+  --rail: 0px;
+  --gut: clamp(22px, 5vw, 79.2px);
+  --maxw: 1452px;
+  --glass: rgba(255, 255, 255, 0.72);
+  --lg-ring: rgba(14, 14, 16, 0.14);
+  --lg-inner: rgba(255, 255, 255, 0.96);
+  --lg-rim: rgba(14, 14, 16, 0.05);
+  --shadow: rgba(14, 14, 16, 0.34);
+  --shadow-soft: rgba(14, 14, 16, 0.14);
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* ---------- header ---------- */
+.head {
+  position: fixed;
+  top: 0;
+  right: auto;
+  z-index: 80;
+  left: calc(50% + var(--rail) / 2);
+  /* --head-y e o unico responsavel pelo deslocamento vertical: animar `top`
+     obrigaria o navegador a refazer o layout a cada quadro, e isso acontece
+     justo durante a rolagem. Em transform quem resolve e o compositor. */
+  --head-y: 0px;
+  transform: translate3d(-50%, var(--head-y), 0);
+  width: calc(100% - var(--rail));
+  display: flex;
+  align-items: center;
+  gap: 26.4px;
+  padding: 19.8px var(--gut);
+  background: var(--glass);
+  backdrop-filter: blur(24.2px) saturate(150%);
+  -webkit-backdrop-filter: blur(24.2px) saturate(150%);
+  border: 1.1px solid transparent;
+  border-radius: 0;
+  box-shadow: 0 0 0 0 rgba(14, 14, 16, 0);
+  transition:
+    transform 0.5s var(--ease),
+    width 0.5s var(--ease),
+    padding 0.5s var(--ease),
+    border-radius 0.5s var(--ease),
+    border-color 0.4s,
+    box-shadow 0.5s var(--ease),
+    gap 0.45s var(--ease);
+  will-change: transform;
+}
+.head.is-stuck {
+  --head-y: 13.2px;
+  width: min(1254px, calc(100% - var(--rail) - 35.2px));
+  padding: 11px 13.2px 11px 24.2px;
+  border-radius: 1098.9px;
+  border-color: var(--lg-ring);
+  box-shadow:
+    inset 0 1.1px 0 var(--lg-inner),
+    inset 0 -1.1px 0 var(--lg-rim),
+    0 19.8px 44px -24.2px var(--shadow),
+    0 2.2px 8.8px -4.4px var(--shadow-soft);
+}
+/* vidro sobre vidro embaca duas vezes: dentro do header os controles so
+   pigmentam, sem blur proprio */
+.head button,
+.head select {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* No celular o trilho sai de cena: 96.8px de coluna vazia em 390px de tela
+   seria um quarto da largura gasto com uma barra de progresso. */
+@media (max-width: 1080px) {
+  .head {
+    padding: 13.2px var(--gut);
+  }
+  .head.is-stuck {
+    width: calc(100% - 22px);
+    padding: 8.8px 8.8px 8.8px 17.6px;
+  }
+}
+
+/* Titulo de secao na fonte de pixel da marca. Ele precisa de corpo: a Jersey
+   10 e desenhada em grade e, nos 18px que estes titulos tinham, os degraus da
+   letra viram sujeira em vez de desenho. Em 27px a grade aparece e a palavra
+   se le de longe — que e o papel de um titulo de bloco. */
+.sec-title {
+  font-family: var(--font-pixel);
+  font-size: 27px;
+  line-height: 0.9;
+  letter-spacing: 0.02em;
+  -webkit-font-smoothing: none;
+  font-smooth: never;
+}
+
+/* Titulo da ferramenta na fonte de pixel da marca.
+
+   Os valores nao sao os do titulo anterior com outra familia: a Jersey 10 tem
+   olho pequeno e desenho em grade, entao no mesmo corpo ela chega bem menor
+   aos olhos que a Inter. Daí o salto de tamanho. A entrelinha fecha em .82 e o
+   entreletra abre .01em — os mesmos numeros que o .pixel do site principal usa
+   nas palavras de destaque, porque o problema ali e o mesmo.
+
+   O alisamento fica DESLIGADO de proposito: suavizar a borda de uma letra
+   desenhada em grade apaga justamente a grade, e sobra uma fonte borrada em
+   vez de uma fonte de pixel. */
+.page-title {
+  font-family: var(--font-pixel);
+  font-size: clamp(44px, 5.6vw, 74px);
+  line-height: 0.82;
+  letter-spacing: 0.01em;
+  -webkit-font-smoothing: none;
+  font-smooth: never;
+}
+
+/* ---------------------------------------------------------------
+   Chines.
+
+   A Inter nao tem um unico ideograma: em chines, TODO o texto cairia
+   na fonte generica do sistema, e o resultado varia de maquina para
+   maquina — no Windows sai em SimSun, com serifa e desenho de 1990.
+   Aqui a pilha nomeia as fontes de interface de cada sistema, na
+   ordem em que existem, e mantem a Inter na frente para os numeros e
+   as siglas latinas (HEX, RGB, WCAG), que aparecem o tempo todo nesta
+   ferramenta e ficam melhores nela.
+
+   O entreletra negativo tambem sai: ele foi calibrado para a Inter e,
+   aplicado a ideogramas, encosta um caractere no outro. */
+:root:lang(zh) body,
+[lang="zh-Hans"] body,
+[lang="zh"] body {
+  font-family:
+    "Inter",
+    "PingFang SC",
+    "Hiragino Sans GB",
+    "Microsoft YaHei",
+    "Noto Sans CJK SC",
+    "Source Han Sans SC",
+    ui-sans-serif,
+    system-ui,
+    sans-serif;
+  letter-spacing: 0;
+}
+/* Os titulos em pixel nao tem ideograma nenhum: a Jersey 10 so cobre
+   latim. Em chines eles voltam para a fonte de interface, senao o
+   titulo da ferramenta sairia todo em caixinha vazia. */
+[lang="zh-Hans"] .page-title,
+[lang="zh"] .page-title,
+[lang="zh-Hans"] .sec-title,
+[lang="zh"] .sec-title {
+  font-family: inherit;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  -webkit-font-smoothing: antialiased;
+}
+[lang="zh-Hans"] .page-title,
+[lang="zh"] .page-title {
+  font-size: clamp(30px, 3.6vw, 50px);
+  line-height: 1.05;
+}
+[lang="zh-Hans"] .sec-title,
+[lang="zh"] .sec-title {
+  font-size: 19px;
+  line-height: 1.3;
+}
+
+/* ---------------------------------------------------------------
+   Titulo que nao pode quebrar.
+
+   "Ajude a manter no ar" partia em duas linhas e sobrava um "no ar"
+   sozinho embaixo. Tirar o max-w resolveria em portugues e quebraria
+   em espanhol, que e um terco mais longo — entao aqui o corpo da
+   letra e que cede, e nao a linha.
+
+   Os numeros nao sao chute: sao a largura das frases MEDIDA na
+   Jersey 10 (avanco de cada glifo + o entreletra de .01em), em ems:
+
+     "Help keep it online"          6.46em  ->  100/6.46 = 15.4cqi
+     "Ajude a manter no ar"         7.65em  ->  100/7.65 = 13.0cqi
+     "Ayuda a mantenerlo en línea" 10.13em  ->  100/10.1 =  9.8cqi
+
+   Cada idioma usa a sua propria conta, com uma folga de ~5%: com o
+   numero do espanhol valendo para todos, o titulo em portugues
+   encolheria a toa. O padrao (sem lang casado) fica no valor do
+   espanhol, que e o pior caso.
+
+   A medida e em cqi, e nao em vw, porque a caixa util nao e a tela:
+   ela e a tela menos duas goteiras e ainda tem teto em 1452px. Daí o
+   .fit-box, que declara quem e essa caixa. O teto de 74px e o mesmo
+   do .page-title — o titulo caber numa linha nao e motivo para ficar
+   maior que os das outras ferramentas.
+   --------------------------------------------------------------- */
+.fit-box {
+  container-type: inline-size;
+}
+.title-1line {
+  white-space: nowrap;
+  font-size: min(74px, 9.4cqi);
+}
+[lang="es"] .title-1line {
+  font-size: min(74px, 9.4cqi);
+}
+[lang="pt-BR"] .title-1line {
+  font-size: min(74px, 12.4cqi);
+}
+[lang="en"] .title-1line {
+  font-size: min(74px, 14.6cqi);
+}
+/* Em chines o titulo ja volta para a Inter (regra acima), e a conta da
+   Jersey 10 nao vale: sao 7 ideogramas de avanco cheio. */
+[lang="zh-Hans"] .title-1line,
+[lang="zh"] .title-1line {
+  font-size: min(50px, 12cqi);
+}

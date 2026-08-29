@@ -17,17 +17,11 @@
     <!-- O icone e o mesmo do site principal, servido da raiz. Nao ha copia
          dentro de /colors/ de proposito: um arquivo solto ali seria confundido
          com um slug de paleta pela regra do _redirects (veja GRB/_redirects). -->
-    <link rel="icon" href="/Logo1-favicon.ico" sizes="any" />
-    <link rel="icon" href="/Logo1-icone.svg" type="image/svg+xml" />
-    <script type="module" crossorigin src="/colors/assets/index-rGMG5HVC.js"></script>
-    <link rel="modulepreload" crossorigin href="/colors/assets/rolldown-runtime-CbXtAM7H.js">
-    <link rel="modulepreload" crossorigin href="/colors/assets/react-CPYPbbnH.js">
-    <link rel="modulepreload" crossorigin href="/colors/assets/icons-Dyp8uq__.js">
-    <link rel="modulepreload" crossorigin href="/colors/assets/i18n-3PxYbqd-.js">
-    <link rel="modulepreload" crossorigin href="/colors/assets/color-DlZ8inl7.js">
-    <link rel="stylesheet" crossorigin href="/colors/assets/index-DCnhmaJ3.css">
+    <link rel="icon" href="%BASE_URL%Logo1-favicon.ico" sizes="any" />
+    <link rel="icon" href="%BASE_URL%Logo1-icone.svg" type="image/svg+xml" />
   </head>
   <body>
     <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
