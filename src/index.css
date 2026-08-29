@@ -90,10 +90,124 @@
   --shadow-pop: 0 2.2px 6.6px rgb(14 14 16 / 0.06), 0 26.4px 50.6px -37.4px rgb(14 14 16 / 0.34);
 }
 
+/* ---------------------------------------------------------------
+   Modo escuro.
+
+   Os valores NAO foram escolhidos aqui: sao os mesmos do bloco
+   [data-theme="dark"] do style.css da GR Brands, com os mesmos papeis.
+   Escolher de novo daria dois pretos parecidos e diferentes, que e
+   pior que dois pretos iguais.
+
+   O seletor e [data-theme="dark"] no <html>, igual ao do site, e a
+   escolha e gravada na MESMA chave de localStorage ("grb-theme").
+   Como o app vive em grbrands.com.br/colors, a origem e a mesma do
+   site: quem pos o site no escuro chega aqui no escuro, sem tocar em
+   nada. Era o unico jeito de a troca nao parecer duas ferramentas
+   diferentes coladas no mesmo dominio.
+   --------------------------------------------------------------- */
+:root[data-theme="dark"] {
+  --color-canvas: #0b0b0d;      /* --paper  */
+  --color-surface: #141419;     /* --card   */
+  --color-raised: #1b1b21;
+  --color-ink: #f3f3f5;         /* --ink    */
+  --color-muted: #9c9ca6;       /* --muted  */
+  --color-faint: #6b6b75;       /* --faint  */
+  --color-line: #26262b;        /* --line   */
+  --color-line-strong: #33333a;
+  --color-fill: #17171b;        /* --ph     */
+  --color-fill-strong: #1e1e23; /* --ph2    */
+
+  /* O vermelho clareia no escuro. Nao e capricho: #e4322a sobre #0b0b0d
+     tem contraste de 4,0:1, abaixo do minimo para texto. O site ja
+     resolveu isso subindo para #ff4a3f, e aqui vale o mesmo numero. */
+  --color-accent: #ff4a3f;      /* --red    */
+  --color-accent-soft: #2a1210;
+  --color-accent-ink: #ffffff;
+
+  /* Sombra preta e mais opaca: sobre fundo escuro, uma sombra de 4% de
+     #0e0e10 simplesmente nao existe. */
+  --shadow-card: 0 1.1px 2.2px rgb(0 0 0 / 0.4);
+  --shadow-panel: 0 1.1px 2.2px rgb(0 0 0 / 0.4), 0 30.8px 66px -57.2px rgb(0 0 0 / 0.72);
+  --shadow-pop: 0 2.2px 6.6px rgb(0 0 0 / 0.5), 0 26.4px 50.6px -37.4px rgb(0 0 0 / 0.72);
+
+  /* O vidro do header e as bordas dele. Mesmos valores do site. */
+  --glass: rgba(11, 11, 13, 0.66);
+  --lg-ring: rgba(255, 255, 255, 0.12);
+  --lg-inner: rgba(255, 255, 255, 0.3);
+  --lg-rim: rgba(0, 0, 0, 0.45);
+  --shadow: rgba(0, 0, 0, 0.66);
+  --shadow-soft: rgba(0, 0, 0, 0.4);
+}
+
+/* ---------------------------------------------------------------
+   A troca de tema abre em circulo, a partir do proprio interruptor.
+
+   Portado do style.css da GR Brands sem mudar um valor. O raciocinio
+   completo (e as medicoes) esta la; aqui fica o resumo do que cada
+   regra impede:
+
+   - animation:none nos dois lados desliga o crossfade padrao. Sem
+     isso os dois estados desaparecem ao mesmo tempo e o meio da
+     animacao mostra a pagina lavada.
+   - mix-blend-mode:normal porque o padrao (plus-lighter) soma luz:
+     com um lado opaco ele estoura os claros e o escuro chega cinza.
+   - a borda macia e uma MASCARA de espessura fixa (180px), e o JS
+     anima so o raio. Animar mask-image direto nao funciona: gradiente
+     nao interpola, e o navegador troca de valor no meio, o que se ve
+     como uma piscada em vez de uma passagem.
+   --------------------------------------------------------------- */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-new(root) {
+  --wipe-x: 50%;
+  --wipe-y: 50%;
+  -webkit-mask-image: radial-gradient(circle at var(--wipe-x) var(--wipe-y),
+    #000 calc(var(--wipe-r) - 180px), rgba(0, 0, 0, 0) var(--wipe-r));
+  mask-image: radial-gradient(circle at var(--wipe-x) var(--wipe-y),
+    #000 calc(var(--wipe-r) - 180px), rgba(0, 0, 0, 0) var(--wipe-r));
+}
+::view-transition-old(root) { z-index: 1; }
+::view-transition-new(root) { z-index: 2; }
+
+/* A foto do estado novo e tirada UM QUADRO depois da troca do atributo. Se
+   qualquer coisa ainda estiver no meio de uma transicao de cor, ela e
+   fotografada na cor ANTIGA e o circulo revela uma metade "meio trocada".
+   A rede e ampla de proposito: por esses poucos centesimos, nada transiciona.
+   Nao ha risco de travar nada pela metade, porque o DOM vivo fica escondido
+   atras das fotos esse tempo inteiro. */
+:root.is-theming *,
+:root.is-theming *::before,
+:root.is-theming *::after {
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) { animation: none !important; }
+}
+
+/* Sem @property um custom property nao interpola: o raio saltaria de degrau em
+   degrau em vez de crescer. */
+@property --wipe-r {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
 
 @layer base {
   :root {
-    color-scheme: light only;
+    /* Era "light only", o que travava o app no claro: com essa palavra o
+       navegador ignora qualquer tema escuro, inclusive nos controles nativos
+       (barra de rolagem, seletor de data, autofill). */
+    color-scheme: light;
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
   }
   * {
     box-sizing: border-box;
@@ -272,13 +386,26 @@
     border-radius 0.5s var(--ease),
     border-color 0.4s,
     box-shadow 0.5s var(--ease),
+    /* o site tem esta e aqui faltava: sem ela, a troca de tema mudava o vidro
+       do header num corte seco enquanto o resto da pagina atravessava */
+    background 0.3s,
     gap 0.45s var(--ease);
   will-change: transform;
 }
 .head.is-stuck {
   --head-y: 13.2px;
-  width: min(1254px, calc(100% - var(--rail) - 35.2px));
+  /* Eram 1254px, herdados do site. Mas o site tem QUATRO itens de menu e aqui
+     sao nove, mais o seletor de idioma, a busca e o botao de doar: no teto
+     antigo os dois ultimos rotulos quebravam em duas linhas e a pilula ficava
+     mais alta que o resto. --maxw e a largura que o proprio conteudo do app ja
+     usa, entao a pilula agora acompanha a pagina em vez de estrangular a
+     navegacao. */
+  width: min(var(--maxw), calc(100% - var(--rail) - 35.2px));
   padding: 11px 13.2px 11px 24.2px;
+  /* Em telas de 1280px a largura acima ja bate no limite da janela e nao ha
+     mais de onde tirar espaco. Fechar o vao entre os grupos e o que faz os
+     nove itens caberem ali sem quebrar linha. */
+  gap: 17.6px;
   border-radius: 1098.9px;
   border-color: var(--lg-ring);
   box-shadow:
@@ -287,6 +414,29 @@
     0 19.8px 44px -24.2px var(--shadow),
     0 2.2px 8.8px -4.4px var(--shadow-soft);
 }
+/* O modo zen promete "so as cores" e ocupa a tela inteira, mas o header e
+   fixo com z-index 80 e continuava por cima dela. Duas consequencias: a
+   promessa nao se cumpria, e o botao de SAIR do zen (canto superior direito)
+   ficava debaixo do header, entao o clique batia no header e o zen nao tinha
+   como ser desfeito a nao ser pelo Esc.
+   Duas classes (.head.is-zen) para ganhar de .head sem precisar de !important.
+   Quem poe e tira a classe e um efeito no Generator, do mesmo jeito que a
+   rolagem poe e tira .is-stuck. */
+.head.is-zen {
+  display: none;
+}
+
+/* A nav do header rola quando nao cabe, mas uma barra de rolagem visivel
+   dentro de uma pilula de vidro seria pior que o transbordo. O gesto continua:
+   roda do mouse, trackpad e arrasto por toque. */
+.nav-rola {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.nav-rola::-webkit-scrollbar {
+  display: none;
+}
+
 /* vidro sobre vidro embaca duas vezes: dentro do header os controles so
    pigmentam, sem blur proprio */
 .head button,

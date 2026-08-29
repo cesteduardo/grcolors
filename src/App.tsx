@@ -157,6 +157,92 @@ import {
    linha so — e para que dev e producao nunca discordem sobre o prefixo. */
 const BASE = import.meta.env.BASE_URL;
 
+/* ---------------------------------------------------------------
+   Tema claro/escuro.
+
+   Mesmo contrato do site da GR Brands: atributo data-theme no <html>
+   e a escolha gravada em localStorage["grb-theme"]. A chave e a mesma
+   de proposito. O app mora em grbrands.com.br/colors, entao divide a
+   origem com o site: quem poe o site no escuro chega aqui no escuro.
+
+   Quem aplica o tema na PRIMEIRA pintura e o script inline do
+   index.html, nao este arquivo. Aqui so se le o que ele ja decidiu, e
+   por isso o estado inicial nunca discorda da tela.
+   --------------------------------------------------------------- */
+type Theme = "light" | "dark";
+const lerTema = (): Theme =>
+  (document.documentElement.getAttribute("data-theme") as Theme) || "light";
+
+const gravarTema = (t: Theme) => {
+  document.documentElement.setAttribute("data-theme", t);
+  try {
+    localStorage.setItem("grb-theme", t);
+  } catch {
+    /* modo privado com armazenamento bloqueado: o tema vale para esta sessao */
+  }
+};
+
+/* A troca nao e um fade da pagina inteira: o tema novo CHEGA, num circulo que
+   abre a partir do botao tocado. Portado do theme.js do site, com as mesmas
+   decisoes:
+   - os 900ms e a curva sao os de la;
+   - a faixa macia de 180px tem de ser somada ao raio final, senao sobra um
+     anel do tema antigo na borda da tela no ultimo quadro;
+   - o raio final e ate o canto MAIS DISTANTE, nao a diagonal da tela;
+   - fill:"forwards" e obrigatorio: sem animacao ativa a mascara volta ao raio
+     zero do @property e a camada nova some num piscar. Por isso o cancel so
+     acontece em finished, quando os pseudo-elementos ja sairam.
+   - .is-theming desliga as transicoes durante a captura (ver o index.css).
+   Sem View Transitions ou com movimento reduzido, troca direto. Nada quebra. */
+const trocarTema = (btn: HTMLElement | null, aplicar: (t: Theme) => void) => {
+  const proximo: Theme = lerTema() === "dark" ? "light" : "dark";
+  const troca = () => aplicar(proximo);
+  const semMovimento = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (!btn || semMovimento || !document.startViewTransition) return troca();
+
+  const r = btn.getBoundingClientRect();
+  const x = r.left + r.width / 2;
+  const y = r.top + r.height / 2;
+  const longe = Math.hypot(
+    Math.max(x, innerWidth - x),
+    Math.max(y, innerHeight - y),
+  );
+  const SUAVE = 180;
+
+  const raiz = document.documentElement;
+  raiz.classList.add("is-theming");
+
+  let vt: ViewTransition;
+  try {
+    vt = document.startViewTransition(troca);
+  } catch {
+    raiz.classList.remove("is-theming");
+    return troca();
+  }
+
+  let anim: Animation | null = null;
+  vt.ready.then(() => {
+    anim = raiz.animate(
+      {
+        "--wipe-x": [`${x.toFixed(1)}px`, `${x.toFixed(1)}px`],
+        "--wipe-y": [`${y.toFixed(1)}px`, `${y.toFixed(1)}px`],
+        "--wipe-r": ["0px", `${(longe + SUAVE).toFixed(1)}px`],
+      } as unknown as Keyframe[],
+      {
+        duration: 900,
+        easing: "cubic-bezier(.34,.66,.2,1)",
+        fill: "forwards",
+        pseudoElement: "::view-transition-new(root)",
+      },
+    );
+  });
+  vt.finished.finally(() => {
+    raiz.classList.remove("is-theming");
+    anim?.cancel();
+  });
+};
+
 /* A paleta e o caminho depois de /colors/. decodePalette ja tolera a barra
    inicial, entao aqui basta tirar o prefixo do site. */
 const paletteFromUrl = () =>
@@ -245,7 +331,12 @@ const nav: { id: Tool; label: string }[] = [
   { id: "picker", label: "Seletor" },
   { id: "tailwind", label: "Tailwind" },
   { id: "dev", label: "Para devs" },
-  { id: "bot", label: "Color Bot" },
+  /* "Color Bot" era o nome do painel equivalente do Coolors, em ingles, no
+     meio de uma barra em portugues: o unico rotulo daqui que nao era uma
+     palavra comum, e por isso o unico que um usuario de la reconheceria na
+     hora. "Assistente" diz a mesma coisa na lingua do resto da interface. O id
+     continua "bot" porque e interno e trocar quebraria o estado salvo. */
+  { id: "bot", label: "Assistente" },
 ];
 const titles: Record<Tool, [string, string]> = {
   generate: [
@@ -420,7 +511,10 @@ export default function App() {
     [panel, setPanel] = useState<number | null>(null),
     [lang, setLang] = useState<Lang>(
       () => (localStorage.getItem("gr-colors-lang") as Lang) || "pt",
-    );
+    ),
+    /* Le o que o script inline do index.html ja aplicou, em vez de decidir de
+       novo: assim o estado do React nunca discorda do que esta na tela. */
+    [theme, setTheme] = useState<Theme>(lerTema);
   const t = (phrase: string) => translate(lang, phrase);
   /* Destaca o header do topo ao rolar. Passiva e em rAF — durante a rolagem
      a thread principal ja tem trabalho suficiente. */
@@ -595,12 +689,22 @@ export default function App() {
             barra de app — e virou texto, com a ferramenta atual marcada por
             um fio vermelho embaixo, do jeito que o site marca a etapa
             corrente do processo. */}
-        <nav className="hidden lg:flex items-center gap-6 ml-2 mr-auto">
+        {/* min-w-0 + overflow-x-auto: numa barra flex, um filho so encolhe abaixo
+            do conteudo se receber min-width:0 — o padrao e min-width:auto e e por
+            isso que a nav empurrava o botao de doar para fora da tela em vez de
+            ceder. Agora a nav e a unica parte elastica: ela rola, e o resto do
+            header (marca, idioma, busca, doar) fica inteiro em qualquer largura. */}
+        <nav className="hidden lg:flex items-center gap-5 ml-2 mr-auto min-w-0 overflow-x-auto nav-rola">
           {nav.map((n) => (
             <button
               key={n.id}
               onClick={() => setTool(n.id)}
-              className={`relative py-1 text-[13.5px] tracking-[-.01em] transition ${
+              /* whitespace-nowrap: "Para devs" e "Assistente" sao os dois
+                 rotulos de duas palavras, e eram justamente eles que quebravam
+                 em duas linhas quando a pilula apertava, deixando a barra mais
+                 alta que as outras. O fio vermelho embaixo tambem se partia em
+                 dois. */
+              className={`relative py-1 text-[13.5px] tracking-[-.01em] whitespace-nowrap transition ${
                 tool === n.id ? "text-ink" : "text-muted hover:text-ink"
               }`}
             >
@@ -614,7 +718,24 @@ export default function App() {
             </button>
           ))}
         </nav>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
+          {/* O interruptor de tema. Sol e lua sao os MESMOS desenhos do botao
+              #theme do site (ver SunIcon/MoonIcon), e o circulo que abre na
+              troca e o mesmo de la. O icone mostra para onde se VAI, nao onde
+              se esta: no claro aparece a lua. */}
+          <button
+            onClick={(e) =>
+              trocarTema(e.currentTarget, (t) => {
+                gravarTema(t);
+                setTheme(t);
+              })
+            }
+            aria-pressed={theme === "dark"}
+            title={t(theme === "dark" ? "Ver em claro" : "Ver em escuro")}
+            className="p-2.5 text-muted hover:text-ink hover:bg-fill rounded-full transition"
+          >
+            {theme === "dark" ? <SunIcon size={19} /> : <MoonIcon size={19} />}
+          </button>
           {/* Barra de idiomas. Espanhol e chines aparecem porque estao no
               plano, mas ficam desativados enquanto nao houver dicionario:
               deixa-los clicaveis so entregaria a mesma tela em portugues
@@ -656,7 +777,10 @@ export default function App() {
               embaralhar, que e onde a paleta atual vive. */}
           <button
             onClick={() => setTool("apoiar")}
-            className="px-5 py-2.5 bg-accent text-accent-ink rounded-full text-sm font-semibold flex gap-2 items-center hover:brightness-95 transition"
+            /* whitespace-nowrap: sem isto o rotulo quebrava em tres linhas
+               ("Doe / para o / projeto") quando o espaco apertava, e a pilula
+               crescia em altura empurrando o header inteiro. */
+            className="px-5 py-2.5 bg-accent text-accent-ink rounded-full text-sm font-semibold flex gap-2 items-center whitespace-nowrap shrink-0 hover:brightness-95 transition"
           >
             <Heart size={16} /> {t("Doe para o projeto")}
           </button>
@@ -1157,6 +1281,16 @@ function Generator({
     download(body, type, type === "svg" ? "image/svg+xml" : "text/plain");
   };
   const shareUrl = () => `${location.origin}${BASE}${encodePalette(shown)}`;
+  /* O zen ocupa a tela inteira, mas o header e fixo e continuava por cima
+     dela. Some enquanto durar. Mexer na classe pelo DOM (e nao subir o estado
+     ate o App) e o mesmo caminho que a rolagem ja usa para .is-stuck.
+     A limpeza tambem roda ao desmontar: trocar de ferramenta com o zen ligado
+     deixaria o header escondido para sempre. */
+  useEffect(() => {
+    const head = document.querySelector(".head");
+    head?.classList.toggle("is-zen", zen);
+    return () => head?.classList.remove("is-zen");
+  }, [zen]);
   useEffect(() => {
     if (!zen && isolated === null) return;
     const fn = (e: KeyboardEvent) => {
@@ -1307,7 +1441,12 @@ function Generator({
           </button>
           <button
             onClick={generate}
-            className="flex gap-2 items-center rounded-full bg-[#111] text-white px-5 py-2.5 font-semibold shadow-card hover:bg-ink transition"
+            /* Era bg-[#111] text-white com hover:bg-ink. No escuro isso dava um
+               botao quase invisivel sobre o fundo #0b0b0d — e o hover levava a
+               bg-ink, que no escuro e BRANCO, deixando texto branco sobre
+               branco. Em tokens o par se inverte sozinho: escuro no claro,
+               claro no escuro, sempre com o texto legivel por cima. */
+            className="flex gap-2 items-center rounded-full bg-ink text-canvas px-5 py-2.5 font-semibold shadow-card hover:opacity-85 transition"
           >
             <RefreshCw size={17} /> {t("Gerar")}
           </button>
@@ -1358,7 +1497,7 @@ function Generator({
                   restore(h);
                   setPast(false);
                 }}
-                className="w-full flex h-12 rounded-xl overflow-hidden ring-1 ring-line hover:ring-black/30 transition"
+                className="w-full flex h-12 rounded-xl overflow-hidden ring-1 ring-line hover:ring-line-strong transition"
                 title={h.join(", ")}
               >
                 {h.map((c, j) => (
@@ -1474,7 +1613,12 @@ function Generator({
         <button
           onClick={() => setZen(false)}
           title={t("Sair do modo zen (Esc)")}
-          className="fixed z-40 top-5 right-5 p-3 rounded-full bg-black/45 text-white backdrop-blur hover:bg-black/70 transition"
+          /* z-[90] e nao z-40: o header e z-80. Com 40 este botao ficava
+             DEBAIXO dele e o clique batia no header, entao nao havia como sair
+             do zen a nao ser pelo Esc. O header agora tambem se esconde no zen
+             (.head.is-zen), mas o botao fica acima de qualquer jeito: duas
+             defesas para o unico caminho de saida da tela cheia. */
+          className="fixed z-[90] top-5 right-5 p-3 rounded-full bg-black/45 text-white backdrop-blur hover:bg-black/70 transition"
         >
           <Minimize2 size={19} />
         </button>
