@@ -1,0 +1,61 @@
+# Cloudflare Pages le este arquivo e aplica os cabecalhos abaixo.
+#
+# O padrao da plataforma e "max-age=0, must-revalidate" para TUDO: em cada
+# visita o navegador refaz uma requisicao condicional para os 33 arquivos,
+# mesmo os que nunca mudam. Sao 33 idas ao servidor so para ouvir "nao mudou".
+#
+# Fontes e imagens sao imutaveis na pratica: quando o conteudo muda, o nome do
+# arquivo muda junto. Entao podem ficar um ano em cache, sem revalidar.
+# O HTML continua revalidando sempre, senao uma publicacao nova demoraria a
+# aparecer para quem ja visitou.
+
+# assets/ deixou de existir: o conteudo dela vive na raiz, porque o envio
+# achatava esse nivel e o site subia sem as imagens.
+/hero/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.webp
+  Cache-Control: public, max-age=31536000, immutable
+
+# fonts/ tambem deixou de existir: o envio achatava essa pasta do mesmo jeito
+# e os quatro .woff2 caiam na raiz, deixando o site sem a fonte de pixels.
+/*.woff2
+  Cache-Control: public, max-age=31536000, immutable
+
+/placeholders/*.webp
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.png
+  Cache-Control: public, max-age=31536000, immutable
+/*.ico
+  Cache-Control: public, max-age=31536000, immutable
+/*.svg
+  Cache-Control: public, max-age=31536000, immutable
+
+# CSS e JS mudam a cada ajuste e nao tem hash no nome: uma hora de cache
+# reduz as idas ao servidor sem atrasar demais uma correcao publicada.
+/style.css
+  Cache-Control: public, max-age=3600, must-revalidate
+/script.js
+  Cache-Control: public, max-age=3600, must-revalidate
+
+# HTML sempre revalida: e ele que aponta para o resto.
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+# ---------------------------------------------------------------------------
+# /colors — o GR Colors, um app Vite dentro do site.
+#
+# O Vite carimba um hash no nome de cada arquivo gerado
+# (index-C2OM6iap.js). Quando o conteudo muda, o NOME muda junto — entao estes
+# arquivos nunca precisam ser revalidados, ao contrario do style.css e do
+# script.js do site, que nao tem hash e por isso ficam so uma hora.
+/colors/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# O index.html do app e quem aponta para o bundle com hash. Se ele ficar em
+# cache, a publicacao nova nao chega. A regra /*.html acima ja pega
+# /colors/index.html; esta cobre o endereco sem o nome do arquivo, que e como
+# quase todo mundo chega: grbrands.com.br/colors.
+/colors/
+  Cache-Control: public, max-age=0, must-revalidate

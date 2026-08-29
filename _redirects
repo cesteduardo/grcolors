@@ -1,0 +1,31 @@
+# Cloudflare Pages le este arquivo antes de servir o site.
+#
+# O GR Colors (/colors) guarda a paleta no CAMINHO da URL —
+# /colors/023047-219ebc-8ecae6 — e a le de volta no carregamento
+# (paletteFromUrl em App.tsx). Quem escreve esse caminho e o history.pushState
+# do navegador, entao o arquivo nunca existiu no servidor: e uma rota que so o
+# JavaScript conhece. Sem as regras abaixo, todo link de paleta compartilhado
+# abriria o site principal, porque o Pages, na falta de um 404.html, manda o
+# que nao casou para o index.html da RAIZ — o site da GR Brands, nao o app.
+#
+# O 200 (e nao 301/302) e o que faz a diferenca: o Pages devolve o
+# /colors/index.html mantendo a URL original na barra, entao o app ainda
+# enxerga o caminho e consegue decodificar a paleta. Um redirecionamento de
+# verdade trocaria a URL e a paleta se perderia no caminho.
+
+# Sem a barra final. Deixa deterministico o que hoje depende do Pages adivinhar
+# que /colors e uma pasta.
+/colors             /colors/index.html   200
+
+# Um SO nivel — ":palette" casa um segmento, nunca uma barra. Essa precisao e o
+# ponto: no Pages "as regras valem mesmo quando existe um arquivo com aquele
+# nome", entao um /colors/* guloso engoliria /colors/assets/index-*.js e
+# devolveria HTML no lugar do JavaScript, quebrando o app inteiro. Com um
+# segmento so, /colors/assets/... (dois niveis) nunca entra aqui.
+#
+# Por isso tambem nao existe nenhum arquivo solto dentro de /colors/: as fontes
+# e o icone sao servidos da raiz do site (os MESMOS arquivos do site principal,
+# entao ainda por cima o cache e compartilhado) e todo o bundle vive em
+# /colors/assets/. O unico arquivo neste nivel e o proprio index.html, que esta
+# regra manda para ele mesmo.
+/colors/:palette    /colors/index.html   200
