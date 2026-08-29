@@ -3184,9 +3184,38 @@ function Visualizer({
   const [design, setDesign] = useState<Design>("ui");
   const [previewVision, setPreviewVision] = useState<Vision>("normal");
   const [viewport, setViewport] = useState<Viewport>("desk");
+  const [previewTheme, setPreviewTheme] = useState<"light" | "dark">("light");
   const [tokensCopied, setTokensCopied] = useState(false);
+  const [roleOverrides, setRoleOverrides] = useState<Partial<Record<"background" | "surface" | "text" | "primary" | "accent", string>>>({});
   const viewColors = colors.map((c) => simulateVision(c, previewVision));
-  const r = paletteRoles(viewColors);
+  const automaticRoles = paletteRoles(viewColors);
+  const [neutralHue, neutralSaturation] = hexToHsl(automaticRoles.bg);
+  const automaticBg = hslToHex(
+    neutralHue,
+    Math.min(neutralSaturation, previewTheme === "dark" ? 14 : 10),
+    previewTheme === "dark" ? 7 : 96,
+  );
+  const automaticSurface = hslToHex(
+    neutralHue,
+    Math.min(neutralSaturation, previewTheme === "dark" ? 12 : 7),
+    previewTheme === "dark" ? 15 : 100,
+  );
+  const bg = roleOverrides.background ?? automaticBg;
+  const surface = roleOverrides.surface ?? automaticSurface;
+  const primary = roleOverrides.primary ?? automaticRoles.primary;
+  const accent = roleOverrides.accent ?? automaticRoles.accent;
+  const r: Roles = {
+    ...automaticRoles,
+    bg,
+    surface,
+    primary,
+    accent,
+    ink: textOn(bg),
+    onBg: roleOverrides.text ?? textOn(bg),
+    onSurface: textOn(surface),
+    onPrimary: textOn(primary),
+    onAccent: textOn(accent),
+  };
   const at = (i: number) => viewColors[i % viewColors.length] ?? r.primary;
   const roleChecks = [
     ["Texto principal", r.onBg, r.bg],
@@ -3203,6 +3232,8 @@ function Visualizer({
     ["primary", "Primária", r.primary],
     ["accent", "Destaque", r.accent],
   ] as const;
+  const changeRoleColor = (name: "background" | "surface" | "text" | "primary" | "accent", nextColor: string) =>
+    setRoleOverrides((current) => ({ ...current, [name]: nextColor.toUpperCase() }));
   const copyRoleTokens = () => {
     copy(`:root {\n${roleTokens.map(([name, , value]) => `  --color-${name}: ${value};`).join("\n")}\n}`);
     setTokensCopied(true);
@@ -3243,6 +3274,18 @@ function Visualizer({
               </button>
             ))}
           </div>
+          <div className="flex bg-fill rounded-full p-0.5" aria-label={t("Tema da prévia")}>
+            {(["light", "dark"] as const).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setPreviewTheme(mode)}
+                title={t(mode === "light" ? "Claro" : "Escuro")}
+                className={`p-1.5 rounded-full transition ${previewTheme === mode ? "bg-surface text-ink shadow-card" : "text-muted hover:text-ink"}`}
+              >
+                {mode === "light" ? <SunIcon size={14} /> : <MoonIcon size={14} />}
+              </button>
+            ))}
+          </div>
           <select
             value={previewVision}
             onChange={(e) => setPreviewVision(e.target.value as Vision)}
@@ -3269,18 +3312,42 @@ function Visualizer({
           <span className="px-2 text-[10px] uppercase tracking-[.18em] font-semibold text-faint">
             {t("Papéis da paleta")}
           </span>
-          {roleTokens.map(([name, label, value]) => (
-            <button
-              key={name}
-              onClick={() => copy(value)}
-              className="group flex items-center gap-2 px-3 py-2 rounded-xl bg-fill hover:bg-fill-strong transition"
-              title={`${t("Copiar")} ${value}`}
-            >
-              <i className="size-4 rounded-md ring-1 ring-line" style={{ background: value }} />
-              <span className="text-[11px] font-semibold">{t(label)}</span>
-              <code className="text-[10px] text-faint group-hover:text-muted">{value}</code>
+          {Object.keys(roleOverrides).length > 0 && (
+            <button onClick={() => setRoleOverrides({})} className="text-[10px] font-semibold text-muted hover:text-ink underline underline-offset-2">
+              {t("Restaurar automático")}
             </button>
-          ))}
+          )}
+          {roleTokens.map(([name, label, value]) => {
+            return (
+              <div
+                key={name}
+                className="group flex items-center rounded-xl bg-fill hover:bg-fill-strong transition overflow-hidden"
+              >
+                <label
+                  className="relative flex items-center gap-2 pl-3 pr-2 py-2 cursor-pointer"
+                  title={t("Clique para trocar esta cor")}
+                >
+                  <i className="size-4 rounded-md ring-1 ring-line" style={{ background: value }} />
+                  <span className="text-[11px] font-semibold">{t(label)}</span>
+                  <code className="text-[10px] text-faint group-hover:text-muted">{value}</code>
+                  <input
+                    type="color"
+                    value={value.toLowerCase()}
+                    onChange={(event) => changeRoleColor(name, event.target.value)}
+                    aria-label={`${t("Trocar")} ${t(label)}`}
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                  />
+                </label>
+                <button
+                  onClick={() => copy(value)}
+                  className="relative z-10 p-2 mr-1 rounded-lg text-faint hover:text-ink hover:bg-surface transition"
+                  title={`${t("Copiar")} ${value}`}
+                >
+                  <Copy size={12} />
+                </button>
+              </div>
+            );
+          })}
         </div>
         <button
           onClick={copyRoleTokens}
@@ -3437,91 +3504,43 @@ type MockProps = { r: Roles; at: (i: number) => string };
 function MockUI({ r, at }: MockProps) {
   const t = useT();
   return (
-    <div style={{ background: r.bg, color: r.onBg }}>
-      <div
-        className="px-4 @xl:px-6 py-4 flex items-center justify-between gap-3"
-        style={{ background: r.surface, color: r.onSurface }}
-      >
-        <b className="text-lg tracking-tight">{t("Painel")}</b>
-        <div className="flex items-center gap-5 text-sm font-semibold">
-          <span>{t("Visão geral")}</span>
-          <span className="opacity-60 hidden @sm:inline">{t("Relatórios")}</span>
-          <span
-            className="size-8 rounded-full grid place-items-center text-xs font-semibold"
-            style={{ background: r.primary, color: r.onPrimary }}
-          >
-            EV
-          </span>
+    <div className="flex min-h-[32rem]" style={{ background: r.bg, color: r.onBg }}>
+      <aside className="hidden @2xl:flex w-48 shrink-0 p-5 flex-col border-r" style={{ background: r.surface, color: r.onSurface, borderColor: `${r.onSurface}18` }}>
+        <div className="flex items-center gap-2 mb-8"><i className="size-8 rounded-xl" style={{ background: r.primary }} /><b>Vertex</b></div>
+        <div className="space-y-1 text-sm">
+          {["Visão geral", "Projetos", "Equipe", "Relatórios"].map((item, i) => (
+            <div key={item} className="px-3 py-2.5 rounded-xl font-semibold" style={i === 0 ? { background: r.primary, color: r.onPrimary } : { opacity: .58 }}>{t(item)}</div>
+          ))}
         </div>
-      </div>
-      <div className="p-4 @xl:p-6 @3xl:p-8 grid @xl:grid-cols-3 gap-3 @xl:gap-4">
-        {[
-          ["Receita", "R$ 128.400", "+12,4%"],
-          ["Assinantes", "3.812", "+4,1%"],
-          ["Churn", "1,9%", "−0,3pp"],
-        ].map(([label, value, delta], i) => (
-          <div
-            key={label}
-            className="rounded-2xl p-5"
-            style={{ background: r.surface, color: r.onSurface }}
-          >
-            <span className="text-xs font-semibold uppercase tracking-wider opacity-55">
-              {label}
-            </span>
-            <div className="text-3xl font-semibold mt-2 tracking-tight">
-              {value}
+        <div className="mt-auto pt-5 text-xs opacity-55">workspace@vertex.co</div>
+      </aside>
+      <main className="min-w-0 flex-1 p-4 @xl:p-6 @3xl:p-8">
+        <header className="flex items-center justify-between gap-4 mb-6">
+          <div><span className="text-xs opacity-55">{t("Painel")}</span><h2 className="text-2xl font-semibold">{t("Visão geral")}</h2></div>
+          <div className="flex items-center gap-3"><button className="px-4 py-2 rounded-xl text-sm font-semibold hidden @sm:block" style={{ background: r.surface }}>{t("Exportar")}</button><span className="size-9 rounded-full grid place-items-center text-xs font-semibold" style={{ background: r.accent, color: r.onAccent }}>EV</span></div>
+        </header>
+        <div className="grid @sm:grid-cols-3 gap-3">
+          {[["Receita", "R$ 128.400", "+12,4%"], ["Assinantes", "3.812", "+4,1%"], ["Churn", "1,9%", "−0,3pp"]].map(([label, value, delta], i) => (
+            <div key={label} className="rounded-2xl p-4 border" style={{ background: r.surface, color: r.onSurface, borderColor: `${r.onSurface}12` }}>
+              <span className="text-[10px] font-semibold uppercase tracking-wider opacity-50">{t(label)}</span>
+              <div className="text-2xl @xl:text-3xl font-semibold mt-2 tracking-tight">{value}</div>
+              <span className="text-xs font-semibold mt-2 inline-block" style={{ color: i === 2 ? r.accent : r.primary }}>{delta}</span>
             </div>
-            <span
-              className="inline-block mt-3 text-xs font-semibold px-2.5 py-1 rounded-full"
-              style={{
-                background: i === 2 ? r.accent : r.primary,
-                color: i === 2 ? r.onAccent : r.onPrimary,
-              }}
-            >
-              {delta}
-            </span>
-          </div>
-        ))}
-        <div
-          className="@xl:col-span-2 rounded-2xl p-5"
-          style={{ background: r.surface, color: r.onSurface }}
-        >
-          <b className="text-sm">{t("Últimos 12 meses")}</b>
-          <div className="flex items-end gap-1.5 h-36 mt-5">
-            {[38, 52, 44, 61, 55, 72, 66, 84, 78, 91, 86, 100].map((h, i) => (
-              <span
-                key={i}
-                className="flex-1 rounded-t-md"
-                style={{
-                  height: `${h}%`,
-                  background: i % 3 === 2 ? r.accent : r.primary,
-                  opacity: 0.55 + (i / 12) * 0.45,
-                }}
-              />
-            ))}
-          </div>
+          ))}
         </div>
-        <div
-          className="rounded-2xl p-5 flex flex-col justify-between"
-          style={{ background: r.primary, color: r.onPrimary }}
-        >
-          <div>
-            <b className="text-sm opacity-80">{t("Plano atual")}</b>
-            <div className="text-2xl font-semibold mt-2 tracking-tight">
-              {t("Estúdio")}
+        <div className="grid @xl:grid-cols-[1.7fr_1fr] gap-3 mt-3">
+          <div className="rounded-2xl p-5 border" style={{ background: r.surface, color: r.onSurface, borderColor: `${r.onSurface}12` }}>
+            <div className="flex justify-between"><b className="text-sm">{t("Últimos 12 meses")}</b><span className="text-xs opacity-50">2026</span></div>
+            <div className="flex items-end gap-1.5 h-40 mt-5">
+              {[38,52,44,61,55,72,66,84,78,91,86,100].map((height, i) => <span key={i} className="flex-1 rounded-t-md" style={{ height: `${height}%`, background: i === 11 ? r.accent : r.primary, opacity: i === 11 ? 1 : .32 + i / 22 }} />)}
             </div>
-            <p className="text-sm mt-2 opacity-80">
-              {t("Renova em 14 de setembro.")}
-            </p>
           </div>
-          <button
-            className="mt-5 w-full py-2.5 rounded-xl font-semibold text-sm"
-            style={{ background: r.onPrimary, color: r.primary }}
-          >
-            {t("Gerenciar")}
-          </button>
+          <div className="rounded-2xl p-5 flex flex-col" style={{ background: r.primary, color: r.onPrimary }}>
+            <span className="text-xs opacity-65">{t("Plano atual")}</span><b className="text-2xl mt-2">{t("Estúdio")}</b><p className="text-sm mt-2 opacity-75">{t("Renova em 14 de setembro.")}</p>
+            <div className="mt-auto pt-6"><div className="h-1.5 rounded-full opacity-25" style={{ background: r.onPrimary }}><div className="h-full w-3/4 rounded-full" style={{ background: r.onPrimary }} /></div><button className="mt-4 w-full py-2.5 rounded-xl font-semibold text-sm" style={{ background: r.onPrimary, color: r.primary }}>{t("Gerenciar")}</button></div>
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
