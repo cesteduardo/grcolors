@@ -44,7 +44,7 @@ const en: Dict = {
   Seletor: "Picker",
   Tailwind: "Tailwind",
   "Para devs": "For devs",
-  "Color Bot": "Color Bot",
+  "Assistente": "Assistant",
   /* ---- titulos de ferramenta ---- */
   "Crie uma paleta": "Build a palette",
   "Pressione espaço para gerar novas cores. Trave as que você ama.":
@@ -1025,7 +1025,7 @@ const es: Dict = {
   "Seletor": "Selector",
   "Tailwind": "Tailwind",
   "Para devs": "Para devs",
-  "Color Bot": "Color Bot",
+  "Assistente": "Asistente",
   "Crie uma paleta": "Crea una paleta",
   "Pressione espaço para gerar novas cores. Trave as que você ama.":
     "Pulsa espacio para generar nuevos colores. Bloquea los que te gusten.",
@@ -1982,7 +1982,7 @@ const zh: Dict = {
   "Seletor": "取色器",
   "Tailwind": "Tailwind",
   "Para devs": "开发者",
-  "Color Bot": "配色助手",
+  "Assistente": "配色助手",
   "Crie uma paleta": "创建调色板",
   "Pressione espaço para gerar novas cores. Trave as que você ama.": "按空格生成新配色。锁定你喜欢的颜色。",
   "Explore paletas": "浏览调色板",

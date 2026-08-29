@@ -259,7 +259,7 @@ export default function ColorPanel({
               <span className="text-sm font-semibold">{t(h.label)}</span>
               <button
                 onClick={() => copy(h.colors.join(", "))}
-                className="text-[11px] font-semibold text-muted hover:text-black"
+                className="text-[11px] font-semibold text-muted hover:text-ink"
               >
                 {copied === h.colors.join(", ") ? t("copiado!") : t("copiar")}
               </button>
