@@ -3040,6 +3040,7 @@ function Visualizer({
   const [design, setDesign] = useState<Design>("ui");
   const [previewVision, setPreviewVision] = useState<Vision>("normal");
   const [viewport, setViewport] = useState<Viewport>("desk");
+  const [tokensCopied, setTokensCopied] = useState(false);
   const viewColors = colors.map((c) => simulateVision(c, previewVision));
   const r = paletteRoles(viewColors);
   const at = (i: number) => viewColors[i % viewColors.length] ?? r.primary;
@@ -3051,6 +3052,18 @@ function Visualizer({
   ] as const;
   const failing = roleChecks.filter(([, fg, bg]) => contrast(fg, bg) < 4.5).length;
   const frameW = viewports[viewport].w;
+  const roleTokens = [
+    ["background", "Fundo", r.bg],
+    ["surface", "Superfície", r.surface],
+    ["text", "Texto", r.onBg],
+    ["primary", "Primária", r.primary],
+    ["accent", "Destaque", r.accent],
+  ] as const;
+  const copyRoleTokens = () => {
+    copy(`:root {\n${roleTokens.map(([name, , value]) => `  --color-${name}: ${value};`).join("\n")}\n}`);
+    setTokensCopied(true);
+    setTimeout(() => setTokensCopied(false), 1200);
+  };
 
   return (
     <>
@@ -3106,6 +3119,33 @@ function Visualizer({
           </button>
         </div>
       </div>
+
+      <section className="mb-4 grid lg:grid-cols-[1fr_auto] gap-3 items-stretch">
+        <div className="bg-surface border border-line rounded-2xl p-3 flex flex-wrap gap-2 items-center">
+          <span className="px-2 text-[10px] uppercase tracking-[.18em] font-semibold text-faint">
+            {t("Papéis da paleta")}
+          </span>
+          {roleTokens.map(([name, label, value]) => (
+            <button
+              key={name}
+              onClick={() => copy(value)}
+              className="group flex items-center gap-2 px-3 py-2 rounded-xl bg-fill hover:bg-fill-strong transition"
+              title={`${t("Copiar")} ${value}`}
+            >
+              <i className="size-4 rounded-md ring-1 ring-line" style={{ background: value }} />
+              <span className="text-[11px] font-semibold">{t(label)}</span>
+              <code className="text-[10px] text-faint group-hover:text-muted">{value}</code>
+            </button>
+          ))}
+        </div>
+        <button
+          onClick={copyRoleTokens}
+          className="px-5 py-3 rounded-2xl bg-ink text-canvas font-semibold text-sm flex items-center justify-center gap-2"
+        >
+          {tokensCopied ? <Check size={16} /> : <Copy size={16} />}
+          {t(tokensCopied ? "Tokens copiados" : "Copiar tokens CSS")}
+        </button>
+      </section>
 
       {/* A previa dentro de uma moldura de navegador. Sem ela, o mock flutuava
           no meio da pagina e se confundia com a propria interface da ferramenta:
@@ -3962,10 +4002,11 @@ function Curve({
   suffix: string;
   onChange: (v: number) => void;
 }) {
+  const t = useT();
   return (
     <label className="block">
       <span className="flex justify-between items-baseline text-xs mb-1">
-        <b>{label}</b>
+        <b>{t(label)}</b>
         <span className="tabular-nums font-mono text-muted">
           {value}
           {suffix}
@@ -3979,7 +4020,7 @@ function Curve({
         onChange={(e) => onChange(Number(e.target.value))}
         className="w-full accent-[var(--color-ink)] cursor-pointer"
       />
-      <span className="text-[11px] text-faint block mt-0.5">{hint}</span>
+      <span className="text-[11px] text-faint block mt-0.5">{t(hint)}</span>
     </label>
   );
 }
@@ -3998,6 +4039,7 @@ function Tailwind({ palette }: { palette: string[] }) {
   const [withNeutral, setWithNeutral] = useState(true);
   const [withSemantic, setWithSemantic] = useState(false);
   const [dark, setDark] = useState(false);
+  const [copiedValue, setCopiedValue] = useState("");
 
   const slug = (n: string) =>
     n.trim().replace(/\s+/g, "-").toLowerCase() || "brand";
@@ -4024,6 +4066,18 @@ function Tailwind({ palette }: { palette: string[] }) {
   const code = exportRamps(all, format);
   const pairs = readablePairs(cur.scale);
   const tight = tightestReadablePair(cur.scale);
+  const copyWithFeedback = (value: string) => {
+    copy(value);
+    setCopiedValue(value);
+    setTimeout(() => setCopiedValue(""), 1200);
+  };
+  const downloadCode = () => {
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(new Blob([code], { type: "text/plain;charset=utf-8" }));
+    link.download = `gr-colors-tailwind.${format === "vars" ? "css" : format}`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
   const set = (i: number, patch: Partial<Ramp>) =>
     setRamps((rs) => rs.map((r, j) => (j === i ? { ...r, ...patch } : r)));
   const at = (scale: Step[], k: number) => scale.find((x) => x.key === k)!.hex;
@@ -4078,7 +4132,7 @@ function Tailwind({ palette }: { palette: string[] }) {
               title={t("Criar uma escala para cada cor da paleta atual")}
               className="px-3.5 py-2 rounded-full bg-fill hover:bg-fill-strong text-sm font-semibold flex items-center gap-2"
             >
-              <PaletteIcon size={15} /> Importar paleta
+              <PaletteIcon size={15} /> {t("Importar paleta")}
             </button>
           )}
         </div>
@@ -4126,6 +4180,19 @@ function Tailwind({ palette }: { palette: string[] }) {
               <Trash2 size={17} />
             </button>
           )}
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 border-t border-line divide-x divide-line">
+          {[
+            [t("Degraus"), "11"],
+            [t("Pares AA"), `${pairs.length}/121`],
+            [t("Cor base"), cur.scale.find((step) => step.key === 500)?.hex ?? cur.base],
+            [t("Escalas exportadas"), String(all.length)],
+          ].map(([label, value]) => (
+            <div key={label} className="px-4 py-3 min-w-0">
+              <small className="block text-[9px] uppercase tracking-widest font-semibold text-faint">{label}</small>
+              <b className="block text-sm mt-1 font-mono truncate">{value}</b>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -4199,7 +4266,7 @@ function Tailwind({ palette }: { palette: string[] }) {
                   : "bg-fill hover:bg-fill-strong"
               }`}
             >
-              {label}
+              {t(label)}
             </button>
           ))}
           <label className="ml-auto flex items-center gap-2 text-sm font-semibold cursor-pointer">
@@ -4241,7 +4308,7 @@ function Tailwind({ palette }: { palette: string[] }) {
               return (
                 <button
                   key={x.key}
-                  onClick={() => copy(x.hex)}
+                  onClick={() => copyWithFeedback(x.hex)}
                   title={`Copiar ${x.hex} — L* ${x.lab.toFixed(1)}, ΔE ${x.delta.toFixed(1)} da base`}
                   className="h-32 p-3 flex flex-col justify-between text-left hover:opacity-90 transition"
                   style={{ background: x.hex, color: textOn(x.hex) }}
@@ -4251,7 +4318,10 @@ function Tailwind({ palette }: { palette: string[] }) {
                     {onBlack && <span title={t("Legível sobre preto")}>AA↓</span>}
                   </span>
                   <span>
-                    <small className="block opacity-70 font-semibold">{x.key}</small>
+                    <small className="flex items-center justify-between gap-1 opacity-70 font-semibold">
+                      {x.key}
+                      {copiedValue === x.hex && <Check size={12} />}
+                    </small>
                     <span className="text-[11px] font-mono">{x.hex}</span>
                     <span className="block text-[9px] font-mono opacity-60 mt-0.5">
                       L* {x.lab.toFixed(0)}
@@ -4379,7 +4449,7 @@ function Tailwind({ palette }: { palette: string[] }) {
               className="px-5 py-3 rounded-xl font-semibold"
               style={{ background: at(cur.scale, k), color: textOn(at(cur.scale, k)) }}
             >
-              {label}
+              {t(label)}
             </span>
           ))}
           <span
@@ -4465,11 +4535,19 @@ function Tailwind({ palette }: { palette: string[] }) {
             </button>
           ))}
           <button
-            onClick={() => copy(code)}
+            onClick={() => copyWithFeedback(code)}
             title={t("Copiar código")}
-            className="ml-auto p-2 bg-white/10 hover:bg-white/20 rounded-lg transition"
+            className="ml-auto px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition flex items-center gap-2 text-xs font-semibold"
           >
-            <Copy size={17} />
+            {copiedValue === code ? <Check size={16} /> : <Copy size={16} />}
+            {t(copiedValue === code ? "Copiado" : "Copiar")}
+          </button>
+          <button
+            onClick={downloadCode}
+            title={t("Baixar arquivo")}
+            className="px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition flex items-center gap-2 text-xs font-semibold"
+          >
+            <Download size={16} /> {t("Baixar")}
           </button>
         </div>
         <pre className="text-sm overflow-auto text-green-300 p-6 max-h-96">

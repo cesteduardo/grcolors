@@ -2906,6 +2906,10 @@ const zh: Dict = {
    novas telas não voltem a esconder frases diretas fora dos dicionários. */
 const audited: Record<"en" | "es" | "zh", Dict> = {
   en: {
+    "Papéis da paleta": "Palette roles", "Tokens copiados": "Tokens copied", "Copiar tokens CSS": "Copy CSS tokens",
+    "Superfície": "Surface", "Degraus": "Steps", "Pares AA": "AA pairs", "Escalas exportadas": "Exported scales",
+    "Copiado": "Copied", "Baixar arquivo": "Download file", "Baixar": "Download",
+    "Alcance": "Range", "Plana": "Flat", "Pigmento": "Pigment", "Importar paleta": "Import palette", "Ativo": "Active",
     "Pressione": "Press", "Estilo": "Style", "Trocar imagem": "Change image", "Meta": "Target", "Exemplo": "Example", "Gerenciar": "Manage",
     "Os cinco pontos começam nas cores predominantes. Arraste qualquer um sobre a imagem para trocar a cor.": "The five points start on the dominant colors. Drag any one over the image to change the color.",
     "Cada cor da paleta como texto sobre cada uma como fundo. Clique em qualquer célula para analisar aquele par.": "Each palette color as text over every color as a background. Click any cell to analyze that pair.",
@@ -2931,6 +2935,10 @@ const audited: Record<"en" | "es" | "zh", Dict> = {
     "Fundo, título e texto saem dos mesmos três papéis nos dois modos: o espelho troca 100 por 800 e 900 por 100 sozinho. Aqui o texto lê a": "Background, heading and text use the same three roles in both modes: mirroring swaps 100 for 800 and 900 for 100 automatically. Here the text reads at"
   },
   es: {
+    "Papéis da paleta": "Roles de la paleta", "Tokens copiados": "Tokens copiados", "Copiar tokens CSS": "Copiar tokens CSS",
+    "Superfície": "Superficie", "Degraus": "Pasos", "Pares AA": "Pares AA", "Escalas exportadas": "Escalas exportadas",
+    "Copiado": "Copiado", "Baixar arquivo": "Descargar archivo", "Baixar": "Descargar",
+    "Alcance": "Rango", "Plana": "Plana", "Pigmento": "Pigmento", "Importar paleta": "Importar paleta", "Ativo": "Activo",
     "Pressione": "Pulsa", "Estilo": "Estilo", "Trocar imagem": "Cambiar imagen", "Meta": "Objetivo", "Exemplo": "Ejemplo", "Gerenciar": "Gestionar",
     "Os cinco pontos começam nas cores predominantes. Arraste qualquer um sobre a imagem para trocar a cor.": "Los cinco puntos comienzan en los colores predominantes. Arrastra cualquiera sobre la imagen para cambiar el color.",
     "Cada cor da paleta como texto sobre cada uma como fundo. Clique em qualquer célula para analisar aquele par.": "Cada color de la paleta como texto sobre cada color como fondo. Haz clic en una celda para analizar ese par.",
@@ -2956,6 +2964,10 @@ const audited: Record<"en" | "es" | "zh", Dict> = {
     "Fundo, título e texto saem dos mesmos três papéis nos dois modos: o espelho troca 100 por 800 e 900 por 100 sozinho. Aqui o texto lê a": "Fondo, título y texto usan los mismos tres roles en ambos modos: el espejo intercambia 100 por 800 y 900 por 100 automáticamente. Aquí el texto alcanza"
   },
   zh: {
+    "Papéis da paleta": "调色板角色", "Tokens copiados": "变量已复制", "Copiar tokens CSS": "复制 CSS 变量",
+    "Superfície": "表面", "Degraus": "色阶", "Pares AA": "AA 配色对", "Escalas exportadas": "导出色阶",
+    "Copiado": "已复制", "Baixar arquivo": "下载文件", "Baixar": "下载",
+    "Alcance": "范围", "Plana": "平直", "Pigmento": "颜料感", "Importar paleta": "导入调色板", "Ativo": "激活",
     "Pressione": "按", "Estilo": "风格", "Trocar imagem": "更换图片", "Meta": "目标", "Exemplo": "示例", "Gerenciar": "管理",
     "Os cinco pontos começam nas cores predominantes. Arraste qualquer um sobre a imagem para trocar a cor.": "五个取色点起初位于主色上。可将任意取色点拖到图片上更换颜色。",
     "Cada cor da paleta como texto sobre cada uma como fundo. Clique em qualquer célula para analisar aquele par.": "将调色板中的每种颜色分别用作文字和背景。点击任意单元格分析该配色对。",
