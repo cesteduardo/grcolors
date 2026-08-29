@@ -303,6 +303,26 @@
   -webkit-mask-image: -webkit-radial-gradient(white, black);
 }
 
+/* A prévia de tokens usa contornos definidos pelos próprios tokens da paleta.
+   Reforçamos a geometria sem sombra: a moldura externa fecha o perímetro,
+   o cabeçalho compartilha a mesma linha e os cartões internos não criam
+   pequenos vãos nos cantos antialiasados. */
+.token-preview-shell {
+  border-width: 2px !important;
+  border-style: solid;
+  background-clip: padding-box;
+  isolation: isolate;
+}
+.token-preview-header {
+  border-bottom-width: 2px !important;
+  border-bottom-style: solid;
+}
+.token-preview-card {
+  border-width: 1.6px !important;
+  border-style: solid;
+  background-clip: padding-box;
+}
+
 /* Xadrez para indicar transparência. */
 .checker {
   background-color: var(--color-surface);

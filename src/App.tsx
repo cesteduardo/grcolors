@@ -4985,11 +4985,11 @@ function DevTokens({ palette }: { palette: string[] }) {
     <div className="space-y-5">
       {/* ---------- prévia com os tokens ---------- */}
       <section
-        className="rounded-3xl border overflow-hidden"
+        className="token-preview-shell rounded-3xl border overflow-hidden"
         style={{ background: v("bg"), borderColor: v("border"), color: v("text") }}
       >
         <header
-          className="flex items-center justify-between gap-4 px-6 py-4 border-b flex-wrap"
+          className="token-preview-header flex items-center justify-between gap-4 px-6 py-4 border-b flex-wrap"
           style={{ background: v("surface"), borderColor: v("border") }}
         >
           <div className="flex items-center gap-3">
@@ -5088,7 +5088,7 @@ function DevTokens({ palette }: { palette: string[] }) {
             </div>
 
             <div
-              className="rounded-2xl border overflow-hidden"
+              className="token-preview-card rounded-2xl border overflow-hidden"
               style={{ background: v("surface"), borderColor: v("border") }}
             >
               <div
@@ -5128,7 +5128,7 @@ function DevTokens({ palette }: { palette: string[] }) {
 
           <div className="space-y-3">
             <div
-              className="rounded-2xl p-5 border"
+              className="token-preview-card rounded-2xl p-5 border"
               style={{ background: v("surface"), borderColor: v("border") }}
             >
               <b className="block">{t("Campo de formulário")}</b>
