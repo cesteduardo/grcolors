@@ -9,7 +9,18 @@
          aqui dentro. Some a ida ao Google Fonts, some a tentacao dos pesos
          700/800/900 que nao existem na marca, e quem chega ao /colors vindo do
          site ja tem as fontes em cache. -->
-    <meta name="color-scheme" content="light" />
+    <meta name="color-scheme" content="light dark" />
+    <!-- Aplica o tema antes da primeira pintura para evitar um clarão enquanto
+         o React carrega. A preferência explícita vence a do sistema. -->
+    <script>
+      (function () {
+        try {
+          var theme = localStorage.getItem("grb-theme");
+          if (!theme) theme = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+          document.documentElement.setAttribute("data-theme", theme);
+        } catch (error) {}
+      })();
+    </script>
     <meta
       name="description"
       content="GR Colors, uma ferramenta GR Brands para criar paletas, testar contraste, visualizar aplicações e exportar cores para seus projetos."
