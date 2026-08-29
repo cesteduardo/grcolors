@@ -290,10 +290,10 @@
   background-clip: padding-box;
 }
 
-/* Contorno ligeiramente mais encorpado que o padrão de 1px do Tailwind.
+/* Contorno mais encorpado que o padrão de 1px do Tailwind.
    Continua flat: a separação vem da linha, não de uma sombra decorativa. */
 [class*="rounded-"][class*="border-line"] {
-  border-width: 1.35px;
+  border-width: 1.6px;
 }
 
 /* Recipientes que recortam conteúdo colorido precisam de uma camada própria;
