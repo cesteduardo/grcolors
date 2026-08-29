@@ -5200,17 +5200,24 @@ function DevTokens({ palette }: { palette: string[] }) {
 function Bot({ onPalette }: { onPalette: (c: string[]) => void }) {
   const t = useT();
   const [input, setInput] = useState("");
-  const [messages, setMessages] = useState<BotMessage[]>([
+  const welcomeMessage: BotMessage =
     {
       id: 0,
       role: "bot",
-        text: "Converse comigo sobre cor: pergunte o que uma cor significa, como combinar duas cores, o que é matiz ou contraste — ou descreva seu projeto e eu monto a paleta. Entendo temas (clínica, fintech, restaurante…), nomes de cor, HEX, quantidade de cores e harmonia, e mostro o que entendi de cada pedido.",
-    },
-  ]);
+      text: "Converse comigo sobre cor: pergunte o que uma cor significa, como combinar duas cores, o que é matiz ou contraste — ou descreva seu projeto e eu monto a paleta. Entendo temas (clínica, fintech, restaurante…), nomes de cor, HEX, quantidade de cores e harmonia, e mostro o que entendi de cada pedido.",
+    };
+  const [messages, setMessages] = useState<BotMessage[]>([welcomeMessage]);
   const lastRequest = useRef("");
   const lastResult = useRef<ReturnType<typeof paletteFromPrompt> | null>(null);
   const messageId = useRef(1);
   const endRef = useRef<HTMLDivElement>(null);
+  const commands = [
+    ["/clear", "Limpar toda a conversa"],
+    ["/help", "Mostrar os comandos disponíveis"],
+    ["/again", "Gerar outra versão da última paleta"],
+    ["/copy", "Copiar os códigos da última paleta"],
+    ["/palette", "Criar uma paleta a partir do texto seguinte"],
+  ] as const;
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -5258,6 +5265,40 @@ function Bot({ onPalette }: { onPalette: (c: string[]) => void }) {
      base de perguntas e montava uma paleta em vez de responder. */
   const ask = (clean: string) => {
     if (!clean) return;
+    const [command, ...commandArgs] = clean.split(/\s+/);
+    const argument = commandArgs.join(" ").trim();
+    if (command.startsWith("/")) {
+      if (command === "/clear") {
+        setMessages([{ ...welcomeMessage, id: 0 }]);
+        lastRequest.current = "";
+        lastResult.current = null;
+        messageId.current = 1;
+        return;
+      }
+      if (command === "/help") {
+        talk(clean, "Comandos disponíveis:\n/clear — limpar a conversa\n/help — mostrar esta ajuda\n/again — gerar outra versão\n/copy — copiar a última paleta\n/palette descrição — criar uma paleta a partir da descrição");
+        return;
+      }
+      if (command === "/again") {
+        if (lastRequest.current) run(lastRequest.current, true, clean);
+        else talk(clean, "Ainda não há uma paleta para variar. Descreva primeiro um projeto, uma sensação ou uma cor.");
+        return;
+      }
+      if (command === "/copy") {
+        if (lastResult.current) {
+          copy(lastResult.current.colors.join(", "));
+          talk(clean, `${t("Copiei")} ${lastResult.current.colors.length} ${t("códigos para a área de transferência.")}`);
+        } else talk(clean, "Ainda não há uma paleta para copiar.");
+        return;
+      }
+      if (command === "/palette") {
+        if (argument) run(argument, false, clean);
+        else talk(clean, "Escreva uma descrição depois do comando. Exemplo: /palette clínica calma azul, 5 cores.");
+        return;
+      }
+      talk(clean, `${t("Não reconheço o comando")} “${command}”. ${t("Use /help para ver os comandos disponíveis.")}`);
+      return;
+    }
     const q = clean.toLocaleLowerCase("pt-BR").replace(/[!?.,]+$/g, "").trim();
 
     if (/^(oi+|ol[aá]|opa|e a[ií]|bom dia|boa tarde|boa noite)$/.test(q)) {
@@ -5432,7 +5473,7 @@ function Bot({ onPalette }: { onPalette: (c: string[]) => void }) {
               key={m.id}
               className={`md:pl-[3.25rem] ${i === 0 ? "py-8" : "pb-9 pt-1"}`}
             >
-              <p className="text-[15.5px] leading-[1.68] text-muted max-w-[64ch]">
+              <p className="text-[15.5px] leading-[1.68] text-muted max-w-[64ch] whitespace-pre-line">
                 {t(m.text)}
               </p>
               {m.colors && m.reading && (
@@ -5488,6 +5529,36 @@ function Bot({ onPalette }: { onPalette: (c: string[]) => void }) {
           suggest();
         }}
       >
+        {input.startsWith("/") && (
+          <div className="mb-2 bg-surface border border-line rounded-2xl overflow-hidden shadow-pop">
+            {commands
+              .filter(([name]) => name.startsWith(input.split(/\s/)[0].toLowerCase()))
+              .map(([name, description]) => (
+                <button
+                  key={name}
+                  type="button"
+                  onClick={() => setInput(name === "/palette" ? `${name} ` : name)}
+                  className="w-full px-4 py-3 flex items-center gap-4 text-left border-b last:border-b-0 border-line hover:bg-fill transition"
+                >
+                  <code className="font-semibold text-sm text-accent w-20">{name}</code>
+                  <span className="text-sm text-muted">{t(description)}</span>
+                </button>
+              ))}
+          </div>
+        )}
+        <div className="flex gap-2 mb-2 px-2 overflow-x-auto">
+          {commands.slice(0, 4).map(([name, description]) => (
+            <button
+              key={name}
+              type="button"
+              onClick={() => setInput(name)}
+              title={t(description)}
+              className="text-[11px] font-mono font-semibold text-faint hover:text-accent transition shrink-0"
+            >
+              {name}
+            </button>
+          ))}
+        </div>
         <div className="flex items-center gap-2 bg-surface border border-line rounded-full p-1.5 pl-5 focus-within:border-accent transition">
           <input
             value={input}
