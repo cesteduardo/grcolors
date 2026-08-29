@@ -91,4 +91,6 @@ Ao adicionar texto visível, inclua a tradução em inglês, espanhol e chinês 
 
 ## Licença
 
-Distribuído sob a licença MIT. Consulte [LICENSE](LICENSE).
+O código e os recursos originais são distribuídos sob a licença MIT. Consulte
+[LICENSE](LICENSE). As fontes incluídas permanecem sob a SIL Open Font License
+1.1; consulte [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
